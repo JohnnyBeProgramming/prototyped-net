@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1",
+  "name": "Prototyped",
+  "author": "author",
+  "private": true,
+  "description": "Prototyped software solutions for responsive web-based AngularJS apps.",
+  "homepage": "https://www.prototyped.info",
+  "repository": {
+    "type": "git",
+    "url": "https://johnnybecoding.visualstudio.com/DefaultCollection/_git/Prototyped"
+  },
+  "dependencies": {},
+  "scripts": {
+    "preinstall": "echo - Installing...",
+    "preupdate": "echo - Updating..."
+  },
+  "devDependencies": {
+    "grunt": "0.4.5",
+    "grunt-contrib-watch": "0.6.1",
+    "grunt-msbuild":"0.2.2"
+  }
+}

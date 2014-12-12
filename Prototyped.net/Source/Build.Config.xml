@@ -1,0 +1,62 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup>
+    <SolutionFile Include="Prototyped.sln" />
+    <BuildDir Include="..\Build\" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <BuildPlatform Condition=" '$(BuildPlatform)' == '' ">Any CPU</BuildPlatform>
+    <OutputPath Condition=" '$(OutputPath)' == '' " >Build\$(Configuration)</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <BuildDir>Build\$(Configuration)</BuildDir>
+  </PropertyGroup>
+
+  <Target Name="Init">
+    <MakeDir Directories="$(BuildDir)" />
+  </Target>
+
+  <Target Name="Clean">
+    <RemoveDir Directories="$(BuildFolders)" />
+    <ItemGroup>
+      <BinFiles Include="bin\*.*" />
+    </ItemGroup>
+    <Delete Files="@(BinFiles)" />
+  </Target>
+
+  <Target Name="Build" DependsOnTargets="Init">
+    <MSBuild 
+      Targets="Rebuild" 
+      Projects="@(SolutionFile)"  
+      Properties="OutDir=%(BuildDir.FullPath)/$(Configuration);Configuration=$(Configuration);Platform=$(BuildPlatform);" />
+  </Target>
+
+<!-- 
+<Target Name="Compile">
+    <Csc Sources="@(Compile)" />
+</Target>
+<PropertyGroup>
+    <BuildInParallel Condition="'$(BuildInParallel)' == 
+        ''">true</BuildInParallel>
+</PropertyGroup>
+<MSBuild
+    Projects="@(_MSBuildProjectReferenceExistent)"
+    Targets="GetTargetPath"
+    BuildInParallel="$(BuildInParallel)"
+    Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); 
+        %(_MSBuildProjectReferenceExistent.SetPlatform)"
+    Condition="'@(NonVCProjectReference)'!='' and 
+        ('$(BuildingSolutionFile)' == 'true' or 
+        '$(BuildingInsideVisualStudio)' == 'true' or 
+        '$(BuildProjectReferences)' != 'true') and   
+        '@(_MSBuildProjectReferenceExistent)' != ''"
+    ContinueOnError="!$(BuildingProject)">
+    <Output TaskParameter="TargetOutputs" 
+        ItemName="_ResolvedProjectReferencePaths"/>
+</MSBuild>  
+-->
+
+
+</Project>
