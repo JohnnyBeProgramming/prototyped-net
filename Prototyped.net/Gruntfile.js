@@ -17,7 +17,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');    
   grunt.loadNpmTasks('grunt-msbuild');
   grunt.loadNpmTasks('grunt-dotnet-assembly-info');
-
+  //grunt.loadNpmTasks('grunt-nunit-runner');
+  
   // DEFINE YOUR PROTOTYPED GRUNT TASKS HERE
   grunt.registerTask('default', [
     // Define main build process
@@ -64,6 +65,14 @@ module.exports = function(grunt) {
                 copyright: 'Copyright 3002 (c) Planet Express',
                 ...
             }
+        }
+    }
+
+    // UNIT TESTS
+    nunit: {
+        options: {
+            files: ['src/MyApp.sln'],
+            teamcity: true
         }
     }
     */

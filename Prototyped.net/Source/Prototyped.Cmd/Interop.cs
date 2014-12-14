@@ -1,9 +1,12 @@
-﻿using Prototyped.Base.Interfaces;
+﻿using Prototyped.Base.Generics;
+using Prototyped.Base.Interfaces;
 using Prototyped.Cmd.Commands;
+using Prototyped.Data;
 using Prototyped.Data.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -177,11 +180,31 @@ Options:
             Commands = new Dictionary<String, IConsoleCommand>
                            {
                                {"sample", new SampleCommand()},
-                               {"sql", new SqlCommand()},
+                               //{"sql", new SqlCommand()},
                                {"shell", new ShellCommand()},
                                {"winproc", new WinProcessCommand()}
                            };
 
+            var assembly = typeof(SqlCommand).Assembly;
+            var commands = GetTypesWithAttribute<ProtoCommand>(assembly);
+            foreach (var tp in commands)
+            {
+                var attrCmd = tp.GetCustomAttribute<ProtoCommand>();
+                if (attrCmd != null)
+                {
+                }
+            }
+        }
+
+        private static IEnumerable<Type> GetTypesWithAttribute<TAttr>(Assembly assembly) where TAttr : Attribute
+        {
+            foreach (Type type in assembly.GetTypes())
+            {
+                if (type.GetCustomAttributes(typeof(TAttr), true).Length > 0)
+                {
+                    yield return type;
+                }
+            }
         }
     }
 }

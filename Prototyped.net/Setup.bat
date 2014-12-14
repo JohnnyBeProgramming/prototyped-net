@@ -66,7 +66,12 @@ echo ---------------------------------------------------------------------------
 echo /* -- Returns [ %errorlevel% ] ----------------------------------------------- */ >> "%log%"
 :npm_install_done
 
-
+set msbuild_src=C:\Program Files (x86)\MSBuild\Microsoft\VisualStudio\v12.0\WebApplications
+set msbuild_dst=C:\Program Files (x86)\MSBuild\Microsoft\VisualStudio\v11.0\WebApplications
+if not exist "%msbuild_dst%" (
+	md "%msbuild_dst%"
+	copy /Y "%msbuild_src%\*.*" "%msbuild_dst%\" > nul || goto error
+)
 :npm_grunt
 echo /* -- [ Grunt Tasks ] ------------------------------ */ >> "%log%"
 echo  - Running Grunt Tasks...
