@@ -46,7 +46,7 @@ echo /* -- Returns [ %errorlevel% ] --------------------------------------------
 
 :npm_grunt
 echo /* -- [ Grunt Tasks ] ------------------------------ */ >> "%log%"
-echo  - Running Grunt Tasks...
+echo  - Running Tasks...
 echo -------------------------------------------------------------------------------
 call grunt || goto error
 rem call grunt watch || goto error

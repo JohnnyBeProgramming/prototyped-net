@@ -16,6 +16,7 @@ module.exports = function(grunt) {
   // Load the NPM tasks to be used
   grunt.loadNpmTasks('grunt-contrib-watch');    
   grunt.loadNpmTasks('grunt-msbuild');
+  grunt.loadNpmTasks('grunt-dotnet-assembly-info');
 
   // DEFINE YOUR PROTOTYPED GRUNT TASKS HERE
   grunt.registerTask('default', [
@@ -50,7 +51,23 @@ module.exports = function(grunt) {
             ' * Copyright 2011-<%= grunt.template.today("yyyy") %> <%= pkg.author %>\n' +
             ' */\n',
     jqueryCheck: 'if (typeof jQuery === \'undefined\') { throw new Error(\'Bootstrap\\\'s JavaScript requires jQuery\') }\n\n',
-       
+    
+    // VERSION INFO
+    /*
+    assemblyinfo: {
+        options: {
+            files: ['src/MyApp.sln'],
+            info: {
+                version: process.env.BUILD_NUMBER, 
+                fileVersion: process.env.BUILD_NUMBER,
+                company: 'Planet Express',
+                copyright: 'Copyright 3002 (c) Planet Express',
+                ...
+            }
+        }
+    }
+    */
+    
     // MS BUILD ENGINE
     msbuild: {
         dev: {

@@ -15,13 +15,6 @@ namespace Prototyped.Data.Migrations
     using System.Data.Entity.Validation;
     using System.Linq;
 
-    public class AppRoles
-    {
-        public const string Admin = "Admin";
-        public const string Tester = "Tester";
-        public const string Support = "Support";
-    }
-
     internal sealed class ProtoConfigDB : DbMigrationsConfiguration<ProtoDB>
     {
         public ProtoConfigDB()

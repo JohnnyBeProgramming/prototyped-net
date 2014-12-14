@@ -181,6 +181,7 @@ Options:
                                {"shell", new ShellCommand()},
                                {"winproc", new WinProcessCommand()}
                            };
+
         }
     }
 }

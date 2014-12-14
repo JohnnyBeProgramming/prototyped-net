@@ -2,6 +2,7 @@
 using Prototyped.Data.Models;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ namespace Prototyped.Data
         #region Constructors
         public ProtoDB() : base("ProtoDB", throwIfV1Schema: false) { }
         public ProtoDB(string connStr, bool throwIfV1Schema = false) : base(connStr, throwIfV1Schema) { }
+        public ProtoDB(ConnectionStringSettings connStr, bool throwIfV1Schema = false) : base(connStr.ConnectionString, throwIfV1Schema) { }
         #endregion
 
         #region  Organisational

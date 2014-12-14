@@ -17,9 +17,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prototyped.Data", "Prototyp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prototyped.Web", "Prototyped.Web\Prototyped.Web.csproj", "{0AB0A3F4-F35F-4F99-8F53-E1DDD4A2227F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Interop Stubs", "Interop Stubs", "{A62CF2FD-E559-46D6-A133-191C0B2758C5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Interop Commands", "Interop Commands", "{A62CF2FD-E559-46D6-A133-191C0B2758C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prototyped.Cmd", "Prototyped.CommandLine\Prototyped.Cmd.csproj", "{0C01EBDA-278B-467F-91C6-F9AA43669989}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prototyped.Cmd", "Prototyped.Cmd\Prototyped.Cmd.csproj", "{0C01EBDA-278B-467F-91C6-F9AA43669989}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -42,6 +42,7 @@
     <Compile Include="Dynamic\DynamicLib.cs" />
     <Compile Include="Dynamic\Project.cs" />
     <Compile Include="Dynamic\SourceFile.cs" />
+    <Compile Include="Generics\Attributes.cs" />
     <Compile Include="Generics\Serializer.cs" />
     <Compile Include="Interfaces\IConsoleCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
