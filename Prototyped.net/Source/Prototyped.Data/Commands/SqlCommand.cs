@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Prototyped.Base;
+using Prototyped.Base.Commands;
 using Prototyped.Base.Generics;
 using Prototyped.Base.Interfaces;
 using Prototyped.Data;
@@ -17,34 +18,34 @@ using System.Threading.Tasks;
 
 namespace Prototyped.Data.Commands
 {
-    [ProtoCmd("sql", "Command Line Database Generation Utility.")]
+    [Proto.Command("sql", "Command Line Database Generation Utility.")]
     public class ProtoSqlCmd
     {
-        public string ActionType { get; internal set; }
+        #region Options and Switches
 
-        [ProtoCmdArg("/Q", true, Hint = "Enable quiet mode.")]
+        [Proto.Command.Arg("/Q", true, Hint = "Enable quiet mode.")]
         public bool SilentMode { get; set; }
 
-        [ProtoCmdArg("/Y", false, Hint = "Do no display any user promts.")]
+        [Proto.Command.Arg("/Y", false, Hint = "Do no display any user promts.")]
         public bool ShowPromts { get; set; }
 
-        [ProtoCmdArg("-hn", AttrParser.UseNextArg, Hint = "The hostname used in the connnection string.")]
+        [Proto.Command.Arg("-hn", AttrParser.UseNextArg, Hint = "The hostname used in the connnection string.")]
         public string Hostname { set { ConnInfo.DataSource = value; } }
 
-        [ProtoCmdArg("-db", AttrParser.UseNextArg, Hint = "The database used in the connnection string.")]
+        [Proto.Command.Arg("-db", AttrParser.UseNextArg, Hint = "The database used in the connnection string.")]
         public string DataSource { set { ConnInfo.InitialCatalog = value; } }
 
-        [ProtoCmdArg("-un", AttrParser.UseNextArg, Hint = "The username used in the connnection string.")]
+        [Proto.Command.Arg("-un", AttrParser.UseNextArg, Hint = "The username used in the connnection string.")]
         public string Username { set { ConnInfo.UserID = value; } }
 
-        [ProtoCmdArg("-pw", AttrParser.UseNextArg, Hint = "The password used in the connnection string.")]
+        [Proto.Command.Arg("-pw", AttrParser.UseNextArg, Hint = "The password used in the connnection string.")]
         public string Password { set { ConnInfo.Password = value; } }
 
-        [ProtoCmdArg("-wa", true, Hint = "Use Integrated (Windows Authenticated) Security.")]
-        [ProtoCmdArg("-trusted", true, Hint = "Use Integrated (Windows Authenticated) Security.")]
+        [Proto.Command.Arg("-wa", true, Hint = "Use Integrated (Windows Authenticated) Security.")]
+        [Proto.Command.Arg("-trusted", true, Hint = "Use Integrated (Windows Authenticated) Security.")]
         public bool WinAth { set { ConnInfo.IntegratedSecurity = value; } }
 
-        [ProtoCmdArg("-conn:(.*)", 1, Hint = "The connnection string key name found in the config.")]
+        [Proto.Command.Arg("-conn:(.*)", 1, Hint = "The connnection string key name found in the config.")]
         public string ConnectionName
         {
             set
@@ -59,6 +60,8 @@ namespace Prototyped.Data.Commands
             }
         }
 
+        #endregion
+
         protected SqlConnectionStringBuilder ConnInfo { get; set; }
 
         public ProtoSqlCmd()
@@ -67,21 +70,20 @@ namespace Prototyped.Data.Commands
             ConnInfo = new SqlConnectionStringBuilder { };
         }
 
-        [ProtoCmdCall("info", "Shows additional information for the specified database.")]
+        #region Command Actions
+
+        [Proto.Command.Call("info", "Shows additional information for the specified database.")]
         public void DatabaseShowInfo(string[] args)
         {
             Console.WriteLine("-------------------------------------------------------------------------------");
-            Console.WriteLine(" - Current State for '{0}'", this.GetType().Name);
-            Console.WriteLine(" - Args: {0}", string.Join(" ", args));
-            Console.WriteLine("-------------------------------------------------------------------------------");
             Console.WriteLine(" - Hostname: {0}", ConnInfo.DataSource);
             Console.WriteLine(" - Database: {0}", ConnInfo.InitialCatalog);
-            Console.WriteLine(" - Username: {0}", ConnInfo.UserID ?? "{ not set }");
-            Console.WriteLine(" - WindAuth: {0}", ConnInfo.IntegratedSecurity);
+            Console.WriteLine(" - Username: {0}", string.IsNullOrEmpty(ConnInfo.UserID) ? "Not Set" : ConnInfo.UserID);
+            Console.WriteLine(" - WindAuth: {0}", ConnInfo.IntegratedSecurity );
             Console.WriteLine("-------------------------------------------------------------------------------");
         }
 
-        [ProtoCmdCall("init", "Initialise target database with pre-populated tables.")]
+        [Proto.Command.Call("init", "Initialise target database with pre-populated tables.")]
         public void DatabaseInitialize(string[] args)
         {
             // Make sure that we have a target database defined
@@ -144,7 +146,7 @@ namespace Prototyped.Data.Commands
             }
         }
 
-        [ProtoCmdCall("create", "Create a new database on the specified host.")]
+        [Proto.Command.Call("create", "Create a new database on the specified host.")]
         public void DefineNewDatabase(string[] args)
         {
             var conn = ConnInfo;
@@ -174,7 +176,7 @@ namespace Prototyped.Data.Commands
                         {
                             Console.WriteLine(" - Database '{0}' created successfully.", db);
                         }
-                    }                    
+                    }
                     conn.InitialCatalog = db;
                 }
                 catch (Exception ex)
@@ -194,7 +196,7 @@ namespace Prototyped.Data.Commands
             } while (conn.InitialCatalog == "master");
         }
 
-        [ProtoCmdCall("update", "Update and migrate the current database version.")]
+        [Proto.Command.Call("update", "Update and migrate the current database version.")]
         public void DatabaseUpdate(string[] args)
         {
             var pass = false;
@@ -229,23 +231,27 @@ namespace Prototyped.Data.Commands
             }
         }
 
-        [ProtoCmdCall("backup", "Warning: Permanent! Backup the current database to offline storage.")]
+        [Proto.Command.Call("backup", "Backup the current database to offline storage.", Prefix = "Warning: This cannot be undone!\r\n")]
         public void DatabaseBackup(string[] args)
         {
             throw new NotImplementedException();
         }
 
-        [ProtoCmdCall("restore", "Warning: Permanent! Restore a snapshot to the current database.")]
+        [Proto.Command.Call("restore", "Restore a snapshot to the current database.", Prefix = "Warning: This cannot be undone!\r\n")]
         public void DatabaseRestore(string[] args)
         {
             throw new NotImplementedException();
         }
 
-        [ProtoCmdCall("delete", "Warning: Permanent! Drops the currently selected database.")]
+        [Proto.Command.Call("delete", "Drops the currently selected database.", Prefix = "Warning: This cannot be undone!\r\n")]
         public void DatabaseDelete(string[] args)
         {
             throw new NotImplementedException();
         }
+
+        #endregion
+
+        #region Helper Functions
 
         private string DefineHostname()
         {
@@ -270,6 +276,10 @@ namespace Prototyped.Data.Commands
 
             return ConnInfo.InitialCatalog;
         }
+
+        #endregion
+
+        #region Database Helper Functions
 
         private bool CreateDatabase(SqlConnectionStringBuilder connInfo, string dbName)
         {
@@ -389,5 +399,7 @@ LOG ON (
                 }
             }
         }
+
+        #endregion
     }
 }

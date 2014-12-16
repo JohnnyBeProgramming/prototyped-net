@@ -1,6 +1,6 @@
 @echo off
 echo ------------------------------------------------------------------------------
-echo  List Command Line Options
+echo  Example: Complex Commands
 echo ------------------------------------------------------------------------------
 
 :setup
@@ -24,11 +24,10 @@ goto init
 
 
 :init
-
 echo  - Invoking: %proto_exe%
-"%proto_exe%" /? || error
-"%proto_exe%" shell || error
+call "%proto_exe%" shell tester info /Q -conn ProtoDB -context:ProtoContext || goto error
 goto done
+
 
 :warning
 echo -------------------------------------------------------------------------------
@@ -47,5 +46,5 @@ goto end
 :done
 echo  - Done
 echo -------------------------------------------------------------------------------
-timeout 10
+
 :end

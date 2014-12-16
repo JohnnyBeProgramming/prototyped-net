@@ -39,19 +39,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\ArgsParserState.cs" />
+    <Compile Include="Attributes\AttrParser.cs" />
+    <Compile Include="Commands\ProtoAttr.cs" />
+    <Compile Include="Commands\ProtoCmd.cs" />
+    <Compile Include="Commands\ProtoCmdArg.cs" />
+    <Compile Include="Commands\ProtoCmdCall.cs" />
+    <Compile Include="Commands\ProtoCmdHelpText.cs" />
+    <Compile Include="Commands\ProtoCmdRunner.cs" />
     <Compile Include="Dynamic\DynamicLib.cs" />
     <Compile Include="Dynamic\Project.cs" />
     <Compile Include="Dynamic\SourceFile.cs" />
-    <Compile Include="Attributes\CommandAttributes.cs" />
     <Compile Include="Generics\Serializer.cs" />
     <Compile Include="Interfaces\IConsoleCommand.cs" />
+    <Compile Include="Interfaces\IProtoAPI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Proto.cs" />
+    <Compile Include="Runtime\ProtoRuntime.cs" />
     <Compile Include="Reflection\ReflectionExtenders.cs" />
     <Compile Include="Repository\ARepository.cs" />
     <Compile Include="Repository\CachedStorage.cs" />
     <Compile Include="Repository\StorageFactory.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

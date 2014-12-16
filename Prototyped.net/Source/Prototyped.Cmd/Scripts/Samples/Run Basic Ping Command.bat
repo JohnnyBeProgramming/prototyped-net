@@ -1,6 +1,6 @@
 @echo off
 echo ------------------------------------------------------------------------------
-echo  List Command Line Options
+echo  Example: Basic Command
 echo ------------------------------------------------------------------------------
 
 :setup
@@ -24,10 +24,8 @@ goto init
 
 
 :init
-
 echo  - Invoking: %proto_exe%
-"%proto_exe%" /? || error
-"%proto_exe%" shell || error
+call "%proto_exe%" ping Proto || goto error
 goto done
 
 :warning

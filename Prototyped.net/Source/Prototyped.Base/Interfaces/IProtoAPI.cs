@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace Prototyped.Base.Interfaces
 {
-    public interface IConsoleCommand
+    /// <summary>
+    /// Define the base app runtime
+    /// </summary>
+    public interface IProtoAPI
     {
-        string HelpDesc { get; }
-
-        void RunCommand(string[] args);
-        void ShowHelpText(string[] args);
+        void Init();
+        void Destroy();
     }
 }

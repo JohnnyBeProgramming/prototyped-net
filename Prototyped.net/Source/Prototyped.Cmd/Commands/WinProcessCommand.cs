@@ -1,4 +1,5 @@
-﻿using Prototyped.Base.Interfaces;
+﻿using Prototyped.Base;
+using Prototyped.Base.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,177 +11,51 @@ using System.Threading.Tasks;
 
 namespace Prototyped.Cmd.Commands
 {
-    public class WinProcessCommand : IConsoleCommand
+    [Proto.Command("winproc", "Manages Windows processes for actively running applications.")]
+    public class WinProcessCommand
     {
-        public const String C_LOG_PATH = @"\Logs\";
-        public const String C_PROMT_MSG = "You are about to terminate the process '{0}'. \r\n\r\nAre you sure you want to continue?";
-        
-        #region Properties: IConsoleCommand
+        public const String C_PROMT_MSG = "You are about to terminate the process '{0}'. \r\n\r\nContinue?";
 
-        public string HelpTitle { get; internal set; }
-        public string HelpText { get; internal set; }
+        #region Command Options
 
-        #endregion
+        [Proto.Command.Arg("-pid", AttrParser.UseNextArg, Hint = "The process ID (defined by <pid>) for the application.")]
+        public int ProcessID { get; set; }
 
-        #region Internal Properties
+        [Proto.Command.Arg("-delay", AttrParser.UseNextArg, Hint = "Delays the operation for <delay> seconds.")]
+        public int DelayTime { get; set; }
 
-        private int processID;
-        private int delayTime;
-        private String actionType;
-        private String promptMessage;
-        private bool promptUser;
+        [Proto.Command.Arg("-prompt", true, Hint = "Prompts the user to confirm the operation.")]
+        public bool PromptUser { get; set; }
+
+        [Proto.Command.Arg("-prompt", AttrParser.UseNextArg, Hint = "The custom message to show the user on prompt.")]
+        public string PromptMessage { get; set; }
 
         #endregion
 
         public WinProcessCommand()
         {
-            HelpTitle = "Manages Windows processes for actively running applications.";
-            HelpText = @"Usage:
-winproc [info|kill] -pid <pid> [-prompt [<msg>]] [-delay <n>]
-
-Options:
-info        Shows additional information for the selected process.
-kill        Kills the currently selected process.
--pid        The process ID (defined by <pid>) for the application.
--prompt     Prompts the user to confirm the operation.
-<msg>       The custom message to show the user on prompt.
--delay      Delays the operation for <n> seconds.
-";
+            PromptUser = true;
         }
 
         #region Command Actions
 
-        public void RunCommand(string[] args)
+        [Proto.Command.Call("list", "Lists all windows processes that are currently rinning.")]
+        public void ListAll(string[] args)
         {
-            // Innitialise the variables
-            processID = -1;
-            delayTime = -1;
-            actionType = String.Empty;
-            promptMessage = String.Empty;
-            promptUser = false;
-
-            if (args.Length > 1)
+            Interop.WriteStatus("  - Listing all active processes.");
+            foreach (var proc in FindProcessList().OrderBy(i => i.BasePriority))
             {
-                // Extract the arguments
-                actionType = args[0];
-                for (var i = 0; i < args.Length; i++)
-                {
-                    switch (args[i])
-                    {
-                        case "-pid":
-                            processID = Int32.Parse(args[i + 1]);
-                            break;
-                        case "-prompt":
-                            if (args.Length > (i + 1))
-                            {
-                                promptMessage = args[i + 1];
-                            }
-                            promptUser = true;
-                            break;
-                        case "-delay":
-                            delayTime = Int32.Parse(args[i + 1]);
-                            break;
-                    }
-                }
-
-                if (delayTime > 0)
-                {
-                    // Delay the action with the specified time
-                    Thread.Sleep(delayTime * 1000);
-                }
-
-                if (processID > 0)
-                {
-                    // Resolve and run the typed action
-                    switch (actionType)
-                    {
-                        case "info":
-                            ShowInfo();
-                            break;
-                        case "kill":
-                            KillProcess();
-                            break;
-                    }
-                }
-                else
-                {
-                    Interop.WriteWarning("Process ID is not a valid number.");
-                }
+                Interop.WriteStatus("  [ PID = {0} Threads = {2} ] {1}", (proc.Id + ",").PadRight(6), proc.ProcessName, proc.Threads.Count.ToString().PadRight(3));
             }
-            else
-            {
-                Interop.WriteWarning("Invalid number of arguments.");
-            }
-        }
-
-        /// <summary>
-        /// Kills the selected process
-        /// </summary>
-        private void KillProcess()
-        {
-            var proc = FindProcessById(processID);
-            if (proc != null)
-            {
-                // Check if the user should be prompted
-                if (promptUser)
-                {
-                    // Check for a definned prompt message
-                    if (String.IsNullOrEmpty(promptMessage))
-                    {
-                        promptMessage = C_PROMT_MSG;
-                    }
-                    if (promptMessage.Contains("{0}"))
-                    {
-                        // Substitute the process name
-                        promptMessage = String.Format(promptMessage, proc.ProcessName);
-                    }
-                    promptMessage = promptMessage.Replace(@"\n", "\n");
-                    //if (MessageBox.Show(promptMessage, "Confirm Termination", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
-                    {
-                        // User canceled
-                        return;
-                    }
-                }
-
-                // Log the Thread instances
-                LogThreadInstances(proc);
-
-                // Try annd kill the process
-                proc.Kill();
-            }
-            else
-            {
-                Interop.WriteWarning(String.Format("Process with id '{0}' could not be found.", processID));
-            }
-        }
-
-        /// <summary>
-        /// Log the thread instances to a text file for later insppection and diagnostics
-        /// </summary>
-        /// <param name="proc"></param>
-        protected void LogThreadInstances(Process proc)
-        {
-            // If the directory doesn't exist, create it.
-            var path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + C_LOG_PATH;
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-
-            // Write the string to the log file.
-            var filename = String.Format(path + "{0} - {1}.log", proc.ProcessName, DateTime.Now.ToString("MM-dd-yyyy HH-MM"));
-            var output = ExtractProcessInfo(proc);
-            var file = new StreamWriter(filename);
-            file.WriteLine(output);
-            file.Close();
         }
 
         /// <summary>
         /// Shows informmation about the currently selected process
         /// </summary>
-        private void ShowInfo()
+        [Proto.Command.Call("info", "Shows additional information for the selected process.")]
+        public void ShowInfo(string[] args)
         {
-            var proc = FindProcessById(processID);
+            var proc = FindProcessById(ProcessID);
             if (proc != null)
             {
                 var output = ExtractProcessInfo(proc);
@@ -188,9 +63,53 @@ kill        Kills the currently selected process.
             }
             else
             {
-                Interop.WriteWarning(String.Format("Process with id '{0}' could not be found.", processID));
+                Interop.WriteWarning(String.Format("Process with id '{0}' could not be found.", ProcessID));
             }
         }
+
+        /// <summary>
+        /// Kills the selected process
+        /// </summary>
+        [Proto.Command.Call("kill", "Kills the currently selected process.")]
+        public void KillProcess(string[] args)
+        {
+            if (DelayTime > 0)
+            {
+                // Delay the action with the specified time
+                Thread.Sleep(DelayTime * 1000);
+            }
+            var proc = FindProcessById(ProcessID);
+            if (proc != null)
+            {
+                // Check if the user should be prompted
+                if (PromptUser)
+                {
+                    // Check for a definned prompt message
+                    if (String.IsNullOrEmpty(PromptMessage))
+                    {
+                        PromptMessage = C_PROMT_MSG;
+                    }
+                    if (PromptMessage.Contains("{0}"))
+                    {
+                        // Substitute the process name
+                        PromptMessage = String.Format(PromptMessage, proc.ProcessName);
+                    }
+                    Console.WriteLine(PromptMessage);
+                    Console.ReadLine();
+                }
+
+                // Try annd kill the process
+                proc.Kill();
+            }
+            else
+            {
+                Interop.WriteWarning(String.Format("Process with id '{0}' could not be found.", ProcessID));
+            }
+        }
+
+        #endregion
+
+        #region Helper Methods
 
         protected String ExtractProcessInfo(Process proc)
         {
@@ -226,16 +145,17 @@ Active Threads:
             return output;
         }
 
-        /// <summary>
-        /// Finds the process with the specified pid
-        /// </summary>
-        /// <param name="procId"></param>
-        /// <returns></returns>
         protected Process FindProcessById(int procId)
         {
             return Process.GetProcesses().FirstOrDefault(clsProcess => clsProcess.Id == procId);
         }
 
+        protected IEnumerable<Process> FindProcessList()
+        {
+            return Process.GetProcesses();
+        }
+
         #endregion
+
     }
 }

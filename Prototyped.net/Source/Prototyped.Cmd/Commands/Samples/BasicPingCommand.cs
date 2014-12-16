@@ -12,21 +12,30 @@ namespace Prototyped.Cmd.Commands.Samples
     /// </summary>
     public class BasicPingCommand : IConsoleCommand
     {
-        public string HelpTitle { get; internal set; }
+        public string HelpDesc { get; internal set; }
+        public string HelpText { get; internal set; }
 
         public BasicPingCommand()
         {
-            HelpTitle = "Basic ping implemented for 'IConsoleCommand'.";
+            HelpDesc = "Basic ping implemented for 'IConsoleCommand'.";
+            HelpText = "This command has no additional options.";
         }
 
         public void RunCommand(string[] args)
         {
-            Console.WriteLine("Ping! Current time is: " + DateTime.Now.ToLongTimeString());
+            var msg = "Ping!";
+            if (args.Length >= 1)
+            {
+                msg = string.Format("Hello {0}!", args[0]);
+            }
+            Interop.WriteStatus(" - {0} Current time is: {1}", msg, DateTime.Now.ToLongTimeString());
         }
 
-        public string GetHelpText()
+        public void ShowHelpText(string[] args)
         {
-            return @"Please Note: This command has no additional options.";
+            Interop.WriteHeader(" " + HelpDesc);
+            Interop.WriteStatus(" - Please Note: {0}", HelpText);
+            Interop.WriteHorzLn();
         }
     }
 }

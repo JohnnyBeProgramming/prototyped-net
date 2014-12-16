@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Prototyped.Base.Commands;
+using Prototyped.Base.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,24 +8,15 @@ using System.Threading.Tasks;
 
 namespace Prototyped.Base
 {
-    /// <summary>
-    /// Define the base app runtime
-    /// </summary>
-    public interface IProtoAPI
-    {
-        void Init();
-        void Destroy();
-    }
-
     public static class Proto
     {
+        static IProtoAPI Runtimme { get; set; }
         static Proto()
         {
-            //Runtimme = new ProtoRuntime();
+            // Main runtime initialisation
+            Runtimme = new ProtoRuntime();
         }
-
-        public static IProtoAPI Runtimme { get; set; }
-
+        
         public class Attr : ProtoAttr { }
 
         public class Command : ProtoCmd
@@ -42,6 +35,16 @@ namespace Prototyped.Base
             public class Call : ProtoCmdCall
             {
                 public Call(string name, string description) : base(name, description) { }
+            }
+
+            public class RunDefault : ProtoCmdRunner
+            {
+                public RunDefault(string description) : base(description) { }
+            }
+
+            public class ShowsHelpText : ProtoCmdHelpText
+            {
+                public ShowsHelpText() : base() { }
             }
         }
     }
