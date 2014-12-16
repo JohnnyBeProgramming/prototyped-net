@@ -199,7 +199,6 @@ namespace Prototyped.Data.Commands
         [Proto.Command.Call("update", "Update and migrate the current database version.")]
         public void DatabaseUpdate(string[] args)
         {
-            var pass = false;
             var conn = ConnInfo;
             try
             {
@@ -217,7 +216,6 @@ namespace Prototyped.Data.Commands
                 // Upgrades are done at this point
                 Console.WriteLine(" - Database '{0}' has been updated.", db);
                 conn.InitialCatalog = db;
-                pass = true;
             }
             catch (Exception ex)
             {
