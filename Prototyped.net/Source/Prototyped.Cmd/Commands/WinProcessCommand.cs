@@ -17,8 +17,8 @@ namespace Prototyped.Cmd.Commands
         
         #region Properties: IConsoleCommand
 
-        public string CommandDescription { get; internal set; }
-        public string CommandHelpText { get; internal set; }
+        public string HelpTitle { get; internal set; }
+        public string HelpText { get; internal set; }
 
         #endregion
 
@@ -34,8 +34,8 @@ namespace Prototyped.Cmd.Commands
 
         public WinProcessCommand()
         {
-            CommandDescription = "Manages Windows processes for actively running applications.";
-            CommandHelpText = @"Usage:
+            HelpTitle = "Manages Windows processes for actively running applications.";
+            HelpText = @"Usage:
 winproc [info|kill] -pid <pid> [-prompt [<msg>]] [-delay <n>]
 
 Options:

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
+using Prototyped.Base;
 using Prototyped.Base.Generics;
 using Prototyped.Base.Interfaces;
 using Prototyped.Data;
@@ -9,199 +10,106 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Prototyped.Data.Commands
 {
-    [ProtoCommand("sql", "Command Line Database Generation Utility.")]
-    public class SqlCommand : IConsoleCommand
+    [ProtoCmd("sql", "Command Line Database Generation Utility.")]
+    public class ProtoSqlCmd
     {
-        public string CommandName { get; internal set; }
-        public string CommandDescription { get; internal set; }
-        public string CommandHelpText { get; internal set; }
-
         public string ActionType { get; internal set; }
-        protected SqlConnectionStringBuilder ConnInfo { get; set; }
 
-        [ProtoCmdArg("/Q", true, Hint = "Enable quiet mode. ")]
+        [ProtoCmdArg("/Q", true, Hint = "Enable quiet mode.")]
         public bool SilentMode { get; set; }
 
         [ProtoCmdArg("/Y", false, Hint = "Do no display any user promts.")]
         public bool ShowPromts { get; set; }
 
-        public SqlCommand()
+        [ProtoCmdArg("-hn", AttrParser.UseNextArg, Hint = "The hostname used in the connnection string.")]
+        public string Hostname { set { ConnInfo.DataSource = value; } }
+
+        [ProtoCmdArg("-db", AttrParser.UseNextArg, Hint = "The database used in the connnection string.")]
+        public string DataSource { set { ConnInfo.InitialCatalog = value; } }
+
+        [ProtoCmdArg("-un", AttrParser.UseNextArg, Hint = "The username used in the connnection string.")]
+        public string Username { set { ConnInfo.UserID = value; } }
+
+        [ProtoCmdArg("-pw", AttrParser.UseNextArg, Hint = "The password used in the connnection string.")]
+        public string Password { set { ConnInfo.Password = value; } }
+
+        [ProtoCmdArg("-wa", true, Hint = "Use Integrated (Windows Authenticated) Security.")]
+        [ProtoCmdArg("-trusted", true, Hint = "Use Integrated (Windows Authenticated) Security.")]
+        public bool WinAth { set { ConnInfo.IntegratedSecurity = value; } }
+
+        [ProtoCmdArg("-conn:(.*)", 1, Hint = "The connnection string key name found in the config.")]
+        public string ConnectionName
+        {
+            set
+            {
+                var connKey = value;
+                var connStr = !string.IsNullOrEmpty(connKey) ? ConfigurationManager.ConnectionStrings[connKey] : null;
+                if (connStr != null)
+                {
+                    // Parse the new connection string
+                    ConnInfo = new SqlConnectionStringBuilder { ConnectionString = connStr.ConnectionString };
+                }
+            }
+        }
+
+        protected SqlConnectionStringBuilder ConnInfo { get; set; }
+
+        public ProtoSqlCmd()
         {
             ShowPromts = true;
-            ConnInfo = new SqlConnectionStringBuilder
-            {
-                DataSource = "."
-            };
-
-            CommandDescription = "Command Line Database Generation Utility.";
-            CommandHelpText = @"Usage:
-sql <command> [ -conn <conn_str_name> | -db <db_name> ] [ -trusted | -wa | -un <user> -pw <password> ] 
-
-Command Options:
-info        Shows additional information for the specified database.
-init        Create and Initialise the specified database.
-update      Update and migrate the current database version.
-backup      Warning! Backup the current database to offline storage.
-restore     Warning! Restore a snapshot to the current database.
-delete      Warning! Drops the currently selected database.
-
-Parameters:
--conn       The connection string name (defined by <conn_str_name>).
--db         The database name (defined by <db_name>).
--un         The SQL login user name for the current database.
--pw         The SQL login password that goes with the username.
--wa         Use Windows Authentication to connect to the database.
--trusted    Use Windows Authentication to connect to the database.
-"; ;
+            ConnInfo = new SqlConnectionStringBuilder { };
         }
 
-        public void RunCommand(string[] args)
+        [ProtoCmdCall("info", "Shows additional information for the specified database.")]
+        public void DatabaseShowInfo(string[] args)
         {
-            try
-            {
-                // Parse the options
-                ParseArguments(args);
-
-                // Check and confirm connection
-                var conn = GetInfo();
-                switch (ActionType)
-                {
-                    case "info":
-                        DatabaseShowInfo(conn.ConnectionString);
-                        break;
-                    case "init":
-                        DatabaseInitialize(conn.ConnectionString);
-                        break;
-                    case "update":
-                        DatabaseUpdate(conn.ConnectionString);
-                        break;
-                    case "backup":
-                        DatabaseBackup(conn.ConnectionString);
-                        break;
-                    case "restore":
-                        DatabaseRestore(conn.ConnectionString);
-                        break;
-                    case "delete":
-                        DatabaseDelete(conn.ConnectionString);
-                        break;
-                    default:
-                        throw new Exception("Command '" + ActionType + "' not recondised.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Exception: " + ex.Message);
-            }
+            Console.WriteLine("-------------------------------------------------------------------------------");
+            Console.WriteLine(" - Current State for '{0}'", this.GetType().Name);
+            Console.WriteLine(" - Args: {0}", string.Join(" ", args));
+            Console.WriteLine("-------------------------------------------------------------------------------");
+            Console.WriteLine(" - Hostname: {0}", ConnInfo.DataSource);
+            Console.WriteLine(" - Database: {0}", ConnInfo.InitialCatalog);
+            Console.WriteLine(" - Username: {0}", ConnInfo.UserID ?? "{ not set }");
+            Console.WriteLine(" - WindAuth: {0}", ConnInfo.IntegratedSecurity);
+            Console.WriteLine("-------------------------------------------------------------------------------");
         }
 
-        private void ParseArguments(string[] args)
+        [ProtoCmdCall("init", "Initialise target database with pre-populated tables.")]
+        public void DatabaseInitialize(string[] args)
         {
-            if (args.Length > 1)
-            {
-                // Extract the arguments
-                ActionType = args[0];
-                for (var i = 0; i < args.Length; i++)
-                {
-                    switch (args[i])
-                    {
-                        case "/Q":
-                            SilentMode = true;
-                            break;
-                        case "/Y":
-                            ShowPromts = false;
-                            break;
-                        case "-conn":
-                            if (args.Length <= (i + 1)) continue;
-                            var connKey = args[i + 1];
-                            var connStr = !string.IsNullOrEmpty(connKey) ? ConfigurationManager.ConnectionStrings[connKey] : null;
-                            if (connStr != null)
-                            {
-                                // Parse the connection string
-                                var builder = new SqlConnectionStringBuilder { ConnectionString = connStr.ConnectionString };
-                                ConnInfo.DataSource = builder.DataSource;
-                                ConnInfo.InitialCatalog = builder.InitialCatalog;
-                                ConnInfo.UserID = builder.UserID;
-                                ConnInfo.Password = builder.Password;
-                                ConnInfo.IntegratedSecurity = builder.IntegratedSecurity;
-                            }
-                            break;
-                        case "-db":
-                            if (args.Length <= (i + 1)) continue;
-                            ConnInfo.InitialCatalog = args[i + 1];
-                            break;
-                        case "-un":
-                            if (args.Length <= (i + 1)) continue;
-                            ConnInfo.UserID = args[i + 1];
-                            break;
-                        case "-pw":
-                            if (args.Length <= (i + 1)) continue;
-                            ConnInfo.Password = args[i + 1];
-                            break;
-                        case "-wa":
-                            ConnInfo.IntegratedSecurity = true;
-                            break;
-                        case "-trusted":
-                            ConnInfo.IntegratedSecurity = true;
-                            break;
-                    }
-                }
-            }
-            else
-            {
-                throw new Exception("Invalid number of arguments.");
-            }
-        }
+            // Make sure that we have a target database defined
+            var hn = DefineHostname();
+            var db = DefineDatabase();
 
-        private SqlConnectionStringBuilder GetInfo()
-        {
-            if (ShowPromts && string.IsNullOrEmpty(ConnInfo.InitialCatalog))
-            {
-                Console.WriteLine(" - Enter target database name: ");
-                ConnInfo.InitialCatalog = Console.ReadLine();
-            }
-            if (string.IsNullOrEmpty(ConnInfo.InitialCatalog))
-            {
-                if (!ShowPromts) throw new Exception("Database name (InitialCatalog) not defined.");
-            }
-            return ConnInfo;
-        }
+            DefineNewDatabase(args);
 
-        [ProtoCmdAction("info", "Shows additional information for the specified database.")]
-        private void DatabaseShowInfo(string connString)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void DatabaseInitialize(string connString)
-        {
-            if (ShowPromts)
+            if (!SilentMode && ShowPromts)
             {
-                var conn = new SqlConnectionStringBuilder(connString);
-                Console.WriteLine(" - Warning: You are about to initialize [" + conn.InitialCatalog + "]");
-                Console.Write(" - Are you sure you want to continue? ");
+                Console.Write(" - Initializing '" + ConnInfo.InitialCatalog + "'. Are you sure?");
                 Console.ReadLine();
             }
 
             // Generate the database...
-            using (var db = new ProtoDB(connString))
+            using (var ctx = new ProtoDB(ConnInfo.ConnectionString))
             {
-                if (!SilentMode) Console.WriteLine(" - Initialising Database [ " + db.Database.Connection.Database + " ]...");
+                if (!SilentMode) Console.WriteLine(" - Initialising Database '" + ctx.Database.Connection.Database + "'...");
 
                 // Create the database roles
-                DatabaseDefineRoles(db, new[] { 
+                DatabaseDefineRoles(ctx, new[] { 
                     AppRoles.Admin, 
                     AppRoles.Tester, 
                     AppRoles.Support 
                 });
 
                 // Create the admin user (if not exists)                
-                if (!db.Users.Any() && ShowPromts)
+                if (!ctx.Users.Any() && ShowPromts)
                 {
                     Console.WriteLine(" - You need to create an admin user...");
                     var isValid = false;
@@ -215,11 +123,11 @@ Parameters:
                         if (!isValid) Console.WriteLine(" - Invalid username and / or password...");
                     }
                     while (!isValid);
-                    DatabaseDefineAdminUser(db, username, password);
+                    DatabaseDefineAdminUser(ctx, username, password);
                 }
 
                 // Display all Blogs from the database 
-                var query = from u in db.Users
+                var query = from u in ctx.Users
                             orderby u.UserName
                             select u;
 
@@ -232,31 +140,210 @@ Parameters:
                         Console.WriteLine(" - [ " + item.UserName.PadRight(9) + " | " + (item.EmailConfirmed ? "Confirmed" : "").PadRight(8) + " | " + (item.LockoutEndDateUtc == null ? "Active" : "Locked").PadRight(5) + " | " + item.Email.PadRight(39) + " ]");
                     }
                     Console.WriteLine("   ----------------------------------------------------------------------------");
-                }                
+                }
             }
         }
 
-        private void DatabaseUpdate(string connString)
+        [ProtoCmdCall("create", "Create a new database on the specified host.")]
+        public void DefineNewDatabase(string[] args)
+        {
+            var conn = ConnInfo;
+            do
+            {
+                var sspi = conn.IntegratedSecurity;
+                try
+                {
+                    // Make sure that we have a target
+                    var hn = DefineHostname();
+                    var db = DefineDatabase();
+
+                    // First we need to create the database
+                    if (!string.IsNullOrEmpty(db))
+                    {
+                        // Connect to master database (when creating)
+                        conn.InitialCatalog = "master";
+
+                        // Default to WinAuth if no username                                
+                        if (string.IsNullOrEmpty(conn.UserID))
+                        {
+                            conn.IntegratedSecurity = true;
+                        }
+
+                        // Create the specified database
+                        if (CreateDatabase(conn, db))
+                        {
+                            Console.WriteLine(" - Database '{0}' created successfully.", db);
+                        }
+                    }                    
+                    conn.InitialCatalog = db;
+                }
+                catch (Exception ex)
+                {
+                    ConnInfo.InitialCatalog = null;
+                    Console.WriteLine(" - Error: " + ex.Message);
+                    Console.WriteLine(" - Press [ENTER] with a blank database name to abort.");
+                }
+                finally
+                {
+                    // Default to WinAuth if no username                                
+                    if (!string.IsNullOrEmpty(conn.UserID))
+                    {
+                        conn.IntegratedSecurity = sspi;
+                    }
+                }
+            } while (conn.InitialCatalog == "master");
+        }
+
+        [ProtoCmdCall("update", "Update and migrate the current database version.")]
+        public void DatabaseUpdate(string[] args)
+        {
+            var pass = false;
+            var conn = ConnInfo;
+            try
+            {
+                // Make sure that we have a target
+                var hn = DefineHostname();
+                var db = DefineDatabase();
+
+                // First we need to create the database
+                if (!string.IsNullOrEmpty(db))
+                {
+                    // ToDo: Implement Updates
+                    throw new NotImplementedException();
+                }
+
+                // Upgrades are done at this point
+                Console.WriteLine(" - Database '{0}' has been updated.", db);
+                conn.InitialCatalog = db;
+                pass = true;
+            }
+            catch (Exception ex)
+            {
+                ConnInfo.InitialCatalog = null;
+                Console.WriteLine(" - Error: " + ex.Message);
+                Console.WriteLine(" - Press [ENTER] with a blank database name to abort.");
+            }
+            finally
+            {
+                // Do Post update stuff                
+            }
+        }
+
+        [ProtoCmdCall("backup", "Warning: Permanent! Backup the current database to offline storage.")]
+        public void DatabaseBackup(string[] args)
         {
             throw new NotImplementedException();
         }
 
-        private void DatabaseBackup(string connString)
+        [ProtoCmdCall("restore", "Warning: Permanent! Restore a snapshot to the current database.")]
+        public void DatabaseRestore(string[] args)
         {
             throw new NotImplementedException();
         }
 
-        private void DatabaseRestore(string connString)
+        [ProtoCmdCall("delete", "Warning: Permanent! Drops the currently selected database.")]
+        public void DatabaseDelete(string[] args)
         {
             throw new NotImplementedException();
         }
 
-        private void DatabaseDelete(string connString)
+        private string DefineHostname()
         {
-            throw new NotImplementedException();
+            if (!SilentMode && ShowPromts && string.IsNullOrEmpty(ConnInfo.DataSource))
+            {
+                Console.Write(" - Hostname: ");
+                ConnInfo.DataSource = Console.ReadLine();
+            }
+            else if (!ShowPromts) throw new Exception("The 'ConnInfo.DataSource' propty has not been set.");
+
+            return ConnInfo.DataSource;
         }
 
-        private void DatabaseDefineAdminUser(ProtoDB db, string username, string password)
+        private string DefineDatabase()
+        {
+            if (!SilentMode && ShowPromts && string.IsNullOrEmpty(ConnInfo.InitialCatalog))
+            {
+                Console.Write(" - Database: ");
+                ConnInfo.InitialCatalog = Console.ReadLine();
+            }
+            else if (!ShowPromts) throw new Exception("Database name (InitialCatalog) not defined.");
+
+            return ConnInfo.InitialCatalog;
+        }
+
+        private bool CreateDatabase(SqlConnectionStringBuilder connInfo, string dbName)
+        {
+            // Try and connect to the SQL server
+            using (var conn = new SqlConnection(connInfo.ConnectionString))
+            {
+                // Connnect...
+                conn.Open();
+
+                // Check if DB exists
+                using (var myCommand = new SqlCommand("if db_id('" + dbName + "') is not null select 1", conn))
+                {
+                    using (var r = myCommand.ExecuteReader())
+                    {
+                        if (r.HasRows) return false;
+                    }
+                }
+
+                // Detect the data directory
+                var dataDir = ".";
+                using (var cmd = new SqlCommand("SELECT TOP 1 Physical_Name FROM sys.master_files WHERE DB_NAME(database_id) LIKE 'master'", conn))
+                {
+                    var path = cmd.ExecuteScalar() as string;
+                    if (path != null)
+                    {
+                        path = Path.GetDirectoryName(path);
+                        dataDir = path;
+                    }
+                }
+
+                if (!SilentMode)
+                {
+                    // Prompt the user about trying to create the database
+                    var pathMax = 65;
+                    var pathDesc = dataDir;
+                    if (pathDesc.Length > pathMax)
+                    {
+                        var prefix = pathDesc.Substring(0, pathMax / 2);
+                        var suffix = pathDesc.Substring(pathDesc.Length - prefix.Length + 5);
+                        pathDesc = prefix + @"\...\" + suffix;
+                    }
+                    Console.WriteLine(" - DataPath: " + pathDesc);
+                    Console.Write(" - Creating '" + dbName + "' on '" + conn.DataSource + "'. Are you sure?");
+                    Console.ReadLine();
+                }
+
+                var query = string.Format(@"
+CREATE DATABASE {0} ON PRIMARY 
+(
+    NAME = {0}_Data, 
+    FILENAME = '{1}\{0}.mdf', 
+    SIZE = 5MB, 
+    MAXSIZE = 1GB, 
+    FILEGROWTH = 10%
+) 
+LOG ON (
+    NAME = {0}_Log, 
+    FILENAME = '{1}\{0}.ldf', 
+    SIZE = 1MB, 
+    MAXSIZE = 5MB, 
+    FILEGROWTH = 10%
+)", dbName, dataDir);
+
+                // Execute the SQL Command
+                using (var myCommand = new SqlCommand(query, conn))
+                {
+                    myCommand.ExecuteNonQuery();
+                }
+            }
+
+            return true;
+        }
+
+        protected void DatabaseDefineAdminUser(ProtoDB db, string username, string password)
         {
             var admin = new Person
             {
@@ -279,7 +366,7 @@ Parameters:
             db.SaveChanges();
         }
 
-        private void DatabaseDefineUserRoles(ProtoDB db, Person user, string[] roles)
+        protected void DatabaseDefineUserRoles(ProtoDB db, Person user, string[] roles)
         {
             foreach (var role in db.Roles.Where(r => roles.Contains(r.Name)))
             {
@@ -287,7 +374,7 @@ Parameters:
             }
         }
 
-        private void DatabaseDefineRoles(ProtoDB db, string[] roles)
+        protected void DatabaseDefineRoles(ProtoDB db, string[] roles)
         {
             if (!db.Roles.Any(r => r.Name == AppRoles.Admin))
             {

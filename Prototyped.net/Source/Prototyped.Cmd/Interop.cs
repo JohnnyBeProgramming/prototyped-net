@@ -1,6 +1,8 @@
-﻿using Prototyped.Base.Generics;
+﻿using Prototyped.Base;
+using Prototyped.Base.Generics;
 using Prototyped.Base.Interfaces;
 using Prototyped.Cmd.Commands;
+using Prototyped.Cmd.Commands.Samples;
 using Prototyped.Data;
 using Prototyped.Data.Commands;
 using System;
@@ -62,8 +64,8 @@ namespace Prototyped.Cmd
                     if (HelpRequested(args))
                     {
                         // Show help for this specific command
-                        Console.WriteLine(args[0] + ": " + command.CommandDescription + "\r\n");
-                        Console.WriteLine(command.CommandHelpText);
+                        var txt = command.GetHelpText(args);
+                        Console.WriteLine(txt);
                     }
                     else
                     {
@@ -80,14 +82,14 @@ namespace Prototyped.Cmd
                     Console.WriteLine("List of available commands:\r\n");
                     foreach (var key in Commands.Keys)
                     {
-                        Console.WriteLine(String.Format("{0,-11} {1}", key, Commands[key].CommandDescription));
+                        Console.WriteLine(String.Format("{0,-11} {1}", key, Commands[key].HelpTitle));
                     }
                     Console.WriteLine("\r\n");
                 }
                 else
                 {
                     // No commmand specified
-                    WriteWarning("Command undefined or empty.");
+                    WriteWarning("Unknown Command.", "# Warnning: ");
                 }
             }
             catch (Exception ex)
@@ -101,11 +103,11 @@ namespace Prototyped.Cmd
         /// Writes a formatted Error message
         /// </summary>
         /// <param name="message"></param>
-        public static void WriteError(string message)
+        public static void WriteError(string message, string prefix = "Error: ")
         {
             var oldColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Error: " + message);
+            Console.WriteLine(prefix + message);
             Console.ForegroundColor = oldColor;
         }
 
@@ -113,11 +115,11 @@ namespace Prototyped.Cmd
         /// Writes a formatted Warning message
         /// </summary>
         /// <param name="message"></param>
-        public static void WriteWarning(string message)
+        public static void WriteWarning(string message, string prefix = "Warning: ")
         {
             var oldColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Warning: " + message);
+            Console.WriteLine(prefix + message);
             Console.ForegroundColor = oldColor;
         }
 
@@ -155,7 +157,7 @@ Options:
         /// <returns></returns>
         public static string[] RemoveFirstArg(string[] args)
         {
-            var newArgs = new string[args.Length];
+            var newArgs = new string[args.Length - 1];
             for (var i = 1; i < args.Length; i++)
             {
                 newArgs[i - 1] = args[i];
@@ -176,33 +178,34 @@ Options:
         /// </summary>
         private static void DefineOptions()
         {
+            Commands = new Dictionary<String, IConsoleCommand>();
+
+            // Define a basic sample command
+            Commands["ping"] = new BasicPingCommand();
+
+            // Example of how to load commands from a well known type
+            Commands["tester"] = ProtoCmd.Instantiate<AttributedDeclarativeCommand>();
+
             // Definne the list of internal commands
-            Commands = new Dictionary<String, IConsoleCommand>
-                           {
-                               {"sample", new SampleCommand()},
-                               //{"sql", new SqlCommand()},
-                               {"shell", new ShellCommand()},
-                               {"winproc", new WinProcessCommand()}
-                           };
+            Commands["shell"] = new ShellCommand();
+            Commands["winproc"] = new WinProcessCommand();
 
-            var assembly = typeof(SqlCommand).Assembly;
-            var commands = GetTypesWithAttribute<ProtoCommand>(assembly);
-            foreach (var tp in commands)
+            // Define assemblies to search for attribute-declared commands (uses reflection, slow...)
+            foreach (var assembly in new Assembly[]
+            { 
+                //typeof(Interop).Assembly, 
+                typeof(ProtoSqlCmd).Assembly 
+            })
             {
-                var attrCmd = tp.GetCustomAttribute<ProtoCommand>();
-                if (attrCmd != null)
+                // Find all commands in the assembly and register them
+                foreach (var protoCmd in ProtoCmd.FromAssembly(assembly))
                 {
-                }
-            }
-        }
-
-        private static IEnumerable<Type> GetTypesWithAttribute<TAttr>(Assembly assembly) where TAttr : Attribute
-        {
-            foreach (Type type in assembly.GetTypes())
-            {
-                if (type.GetCustomAttributes(typeof(TAttr), true).Length > 0)
-                {
-                    yield return type;
+                    var name = protoCmd.Name;
+                    if (Commands.ContainsKey(name))
+                    {
+                        throw new Exception("The command '" + name + "' has already been registered. Cannot override another command.");
+                    }
+                    Commands[name] = protoCmd;
                 }
             }
         }

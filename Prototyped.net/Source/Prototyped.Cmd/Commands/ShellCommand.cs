@@ -10,13 +10,13 @@ namespace Prototyped.Cmd.Commands
 {
     public class ShellCommand : IConsoleCommand
     {
-        public string CommandDescription { get; internal set; }
-        public string CommandHelpText { get; internal set; }
+        public string HelpTitle { get; internal set; }
+        public string HelpText { get; internal set; }
 
         public ShellCommand()
         {
-            CommandDescription = "Opens a session for running multiple commands in the console.";
-            CommandHelpText = @"Usage:
+            HelpTitle = "Session for running multiple commands in the console.";
+            HelpText = @"Usage:
 shell <command>
 
 <command>   The start command to run in the shell.

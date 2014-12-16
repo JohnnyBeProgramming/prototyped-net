@@ -56,7 +56,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\SampleCommand.cs" />
+    <Compile Include="Commands\Samples\BasicPingCommand.cs" />
+    <Compile Include="Commands\Samples\AttributedDeclarativeCommand.cs" />
     <Compile Include="Commands\ShellCommand.cs" />
     <Compile Include="Commands\WinProcessCommand.cs" />
     <Compile Include="Interop.cs" />
@@ -84,9 +85,6 @@
     <None Include="Scripts\List All Commmands.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
