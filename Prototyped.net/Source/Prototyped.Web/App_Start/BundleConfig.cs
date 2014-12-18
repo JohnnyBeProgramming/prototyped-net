@@ -9,10 +9,9 @@ namespace Prototyped.Web
         public static void RegisterBundles(BundleCollection bundles)
         {
 
-            bundles.Add(new ScriptBundle("~/bootstrap").Include(
-                     "~/Assets/Bootstrap/js/bootstrap.js"));
+            bundles.Add(new ScriptBundle("~/bootstrap").Include("~/Assets/Bootstrap/js/bootstrap.js"));
 
-            //Moved bootstrap css to own style tag in the _layout page.  This is to remove it from the optimizations which was breaking the fonts and icons.
+            // Moved bootstrap css to own style tag in the _layout page. This is to remove it from the optimizations which was breaking the fonts and icons.
             bundles.Add(new StyleBundle("~/styles").IncludeDirectory("~/Assets", "*.css", true));
 
 

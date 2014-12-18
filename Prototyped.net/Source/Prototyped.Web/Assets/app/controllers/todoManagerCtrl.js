@@ -13,7 +13,7 @@
         {
             item =
                 {
-                    task : $scope.newTaskText
+                    Description: $scope.newTaskText
                 };
 
             if ($scope.newTaskText != '') {
@@ -27,7 +27,7 @@
 
         $scope.complete = function(index)
         {
-            $http.post('/api/WS_Todo/CompleteTodoItem/' + $scope.todoList[index].id)
+            $http.post('/api/WS_Todo/CompleteTodoItem/' + $scope.todoList[index].ID)
                 .success(function (data, status, headers, config) {
                     $scope.getList();
                 });
@@ -35,7 +35,7 @@
 
         $scope.delete = function(index)
         {
-            $http.post('/api/WS_Todo/DeleteTodoItem/' + $scope.todoList[index].id)
+            $http.post('/api/WS_Todo/DeleteTodoItem/' + $scope.todoList[index].ID)
                 .success(function (data, status, headers, config) {
                     $scope.getList();
                 });

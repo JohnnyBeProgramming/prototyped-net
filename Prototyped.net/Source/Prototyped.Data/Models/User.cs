@@ -10,19 +10,20 @@ using System.Threading.Tasks;
 
 namespace Prototyped.Data.Models
 {
-    public class Person : IdentityUser
+    public class User : IdentityUser
     {
         [Required]
         public string FirstName { get; set; }
 
-        [Required]
+        [Required(AllowEmptyStrings = true)]
         public string LastName { get; set; }
 
-        public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<Person> manager)
+        public virtual List<ToDoItem> ToDoItems { get; set; }
+
+        public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<User> manager, string authenticationType)
         {
             // Note the authenticationType must match the one defined in CookieAuthenticationOptions.AuthenticationType
-            var userIdentity = await manager.CreateIdentityAsync(this, DefaultAuthenticationTypes.ApplicationCookie);
-
+            var userIdentity = await manager.CreateIdentityAsync(this, authenticationType);
             // Add custom user claims here
             return userIdentity;
         }

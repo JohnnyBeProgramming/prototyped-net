@@ -82,8 +82,8 @@
     <Compile Include="AppRoles.cs" />
     <Compile Include="Commands\SqlCommand.cs" />
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Models\Organisation.cs" />
-    <Compile Include="Models\Person.cs" />
+    <Compile Include="Models\User.cs" />
+    <Compile Include="Models\ToDoItem.cs" />
     <Compile Include="ProtoDB.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -9,6 +9,8 @@ using System.Web.Http;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using System.Threading.Tasks;
+using Prototyped.Web.Models.DataModels;
+using Prototyped.Data.Models;
 
 namespace Prototyped.Web.Controllers
 {
@@ -37,10 +39,9 @@ namespace Prototyped.Web.Controllers
         [Authorize]
         public List<ToDoItem> GetUserTodoItems()
         {
-            string userId = Request.GetOwinContext().Authentication.User.Identity.GetUserId();
-
+            var userId = Request.GetOwinContext().Authentication.User.Identity.GetUserId();
             var currentUser = UserManager.FindById(userId);
-            return currentUser.todoItems;
+            return currentUser.ToDoItems;
         }
 
         [HttpPost]
@@ -48,8 +49,7 @@ namespace Prototyped.Web.Controllers
         public HttpResponseMessage PostTodoItem(TodoItemViewModel item)
         {
             var modelStateErrors = ModelState.Values.ToList();
-
-            List<string> errors = new List<string>();
+            var errors = new List<string>();
 
             foreach (var s in modelStateErrors)
                 foreach (var e in s.Errors)
@@ -60,13 +60,12 @@ namespace Prototyped.Web.Controllers
             {
                 try
                 {
-                    string userId = Request.GetOwinContext().Authentication.User.Identity.GetUserId();
-
+                    var userId = Request.GetOwinContext().Authentication.User.Identity.GetUserId();
                     var currentUser = UserManager.FindById(userId);
-                    currentUser.todoItems.Add(new ToDoItem()
+                    currentUser.ToDoItems.Add(new ToDoItem()
                     {
-                        completed = false,
-                        task = item.task
+                        Completed = false,
+                        Description = item.Description
                     });
 
                     UserManager.Update(currentUser);
@@ -81,18 +80,16 @@ namespace Prototyped.Web.Controllers
             {
                 return Request.CreateResponse<List<string>>(HttpStatusCode.BadRequest, errors);
             }
-
-            var user = db.Users.Where(u => u.FirstName == "Test").FirstOrDefault();
         }
 
         [HttpPost]
         [Authorize]
         async public Task<HttpResponseMessage> CompleteTodoItem(int id)
         {
-            var item = db.ToDo.Where(t => t.id == id).FirstOrDefault();
+            var item = db.ToDo.Where(t => t.ID == id).FirstOrDefault();
             if (item != null)
             {
-                item.completed = true;
+                item.Completed = true;
                 await db.SaveChangesAsync();
             }
             return Request.CreateResponse(HttpStatusCode.Accepted);
@@ -102,7 +99,7 @@ namespace Prototyped.Web.Controllers
         [Authorize]
         async public Task<HttpResponseMessage> DeleteTodoItem(int id)
         {
-            var item = db.ToDo.Where(t => t.id == id).FirstOrDefault();
+            var item = db.ToDo.Where(t => t.ID == id).FirstOrDefault();
             if (item != null)
             {
                 db.ToDo.Remove(item);

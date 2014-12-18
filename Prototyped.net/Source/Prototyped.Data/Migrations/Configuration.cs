@@ -36,7 +36,7 @@ namespace Prototyped.Data.Migrations
             SeedRole(ctx, AppRoles.Support);
 
             // Add Administrator Account
-            SeedUser(ctx, new Person
+            SeedUser(ctx, new User
             {
                 UserName = AppRoles.Admin,
                 FirstName = "Administrator",
@@ -66,7 +66,7 @@ namespace Prototyped.Data.Migrations
 
         private void SeedUser(ProtoDB ctx, string username, string password, params string[] roles)
         {
-            SeedUser(ctx, new Person
+            SeedUser(ctx, new User
             {
                 UserName = username,
                 FirstName = username,
@@ -76,10 +76,10 @@ namespace Prototyped.Data.Migrations
                 LockoutEnabled = false,
             }, password, roles);
         }
-        private void SeedUser(ProtoDB ctx, Person usr, string password, params string[] roles)
+        private void SeedUser(ProtoDB ctx, User usr, string password, params string[] roles)
         {
             // Create the Default Accounts
-            using (var userManager = new UserManager<Person>(new UserStore<Person>(ctx)))
+            using (var userManager = new UserManager<User>(new UserStore<User>(ctx)))
             {
                 //userManager.UserValidator = new EmailUserValidator<Person>(userManager);
 

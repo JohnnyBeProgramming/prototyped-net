@@ -4,6 +4,8 @@
         {
             var params = {
                 Email: $scope.username,
+                FirstName: $scope.firstname,
+                LastName: $scope.lastname,
                 Password: $scope.password1,
                 ConfirmPassword: $scope.password2
             };

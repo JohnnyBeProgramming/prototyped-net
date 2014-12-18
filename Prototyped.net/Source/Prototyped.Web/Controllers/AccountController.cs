@@ -18,6 +18,9 @@ using Prototyped.Web.Providers;
 using Prototyped.Web.Results;
 using Prototyped.Web.Models.Utility;
 using System.Net;
+using System.Data.Entity.Validation;
+using System.Text;
+using Prototyped.Data.Models;
 
 namespace Prototyped.Web.Controllers
 {
@@ -28,12 +31,9 @@ namespace Prototyped.Web.Controllers
         private const string LocalLoginProvider = "Local";
         private ApplicationUserManager _userManager;
 
-        public AccountController()
-        {
-        }
+        public AccountController() { }
 
-        public AccountController(ApplicationUserManager userManager,
-            ISecureDataFormat<AuthenticationTicket> accessTokenFormat)
+        public AccountController(ApplicationUserManager userManager, ISecureDataFormat<AuthenticationTicket> accessTokenFormat)
         {
             UserManager = userManager;
             AccessTokenFormat = accessTokenFormat;
@@ -52,6 +52,8 @@ namespace Prototyped.Web.Controllers
         }
 
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; private set; }
+
+        #region Web API Methods
 
         // GET api/Account/UserInfo
         [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
@@ -80,16 +82,14 @@ namespace Prototyped.Web.Controllers
         [Route("ManageInfo")]
         public async Task<ManageInfoViewModel> GetManageInfo(string returnUrl, bool generateState = false)
         {
-            IdentityUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
-
+            var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
             if (user == null)
             {
                 return null;
             }
 
-            List<UserLoginInfoViewModel> logins = new List<UserLoginInfoViewModel>();
-
-            foreach (IdentityUserLogin linkedAccount in user.Logins)
+            var logins = new List<UserLoginInfoViewModel>();
+            foreach (var linkedAccount in user.Logins)
             {
                 logins.Add(new UserLoginInfoViewModel
                 {
@@ -125,9 +125,7 @@ namespace Prototyped.Web.Controllers
                 return BadRequest(ModelState);
             }
 
-            IdentityResult result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword,
-                model.NewPassword);
-
+            var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword, model.NewPassword);
             if (!result.Succeeded)
             {
                 return GetErrorResult(result);
@@ -252,27 +250,23 @@ namespace Prototyped.Web.Controllers
                 return new ChallengeResult(provider, this);
             }
 
-            User user = await UserManager.FindAsync(new UserLoginInfo(externalLogin.LoginProvider,
-                externalLogin.ProviderKey));
-
-            bool hasRegistered = user != null;
-
+            var user = await UserManager.FindAsync(new UserLoginInfo(externalLogin.LoginProvider, externalLogin.ProviderKey));
+            var hasRegistered = user != null;
             if (hasRegistered)
             {
                 Authentication.SignOut(DefaultAuthenticationTypes.ExternalCookie);
 
-                ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(UserManager,
-                   OAuthDefaults.AuthenticationType);
-                ClaimsIdentity cookieIdentity = await user.GenerateUserIdentityAsync(UserManager,
-                    CookieAuthenticationDefaults.AuthenticationType);
+                var oAuthIdentity = await user.GenerateUserIdentityAsync(UserManager, OAuthDefaults.AuthenticationType);
+                var cookieIdentity = await user.GenerateUserIdentityAsync(UserManager, CookieAuthenticationDefaults.AuthenticationType);
+                var properties = ApplicationOAuthProvider.CreateProperties(user.UserName);
 
-                AuthenticationProperties properties = ApplicationOAuthProvider.CreateProperties(user.UserName);
                 Authentication.SignIn(properties, oAuthIdentity, cookieIdentity);
             }
             else
             {
-                IEnumerable<Claim> claims = externalLogin.GetClaims();
-                ClaimsIdentity identity = new ClaimsIdentity(claims, OAuthDefaults.AuthenticationType);
+                var claims = externalLogin.GetClaims();
+                var identity = new ClaimsIdentity(claims, OAuthDefaults.AuthenticationType);
+
                 Authentication.SignIn(identity);
             }
 
@@ -284,11 +278,9 @@ namespace Prototyped.Web.Controllers
         [Route("ExternalLogins")]
         public IEnumerable<ExternalLoginViewModel> GetExternalLogins(string returnUrl, bool generateState = false)
         {
-            IEnumerable<AuthenticationDescription> descriptions = Authentication.GetExternalAuthenticationTypes();
-            List<ExternalLoginViewModel> logins = new List<ExternalLoginViewModel>();
-
-            string state;
-
+            var state = string.Empty;
+            var descriptions = Authentication.GetExternalAuthenticationTypes();
+            var logins = new List<ExternalLoginViewModel>();
             if (generateState)
             {
                 const int strengthInBits = 256;
@@ -299,9 +291,9 @@ namespace Prototyped.Web.Controllers
                 state = null;
             }
 
-            foreach (AuthenticationDescription description in descriptions)
+            foreach (var description in descriptions)
             {
-                ExternalLoginViewModel login = new ExternalLoginViewModel
+                var login = new ExternalLoginViewModel
                 {
                     Name = description.Caption,
                     Url = Url.Route("ExternalLogin", new
@@ -325,29 +317,55 @@ namespace Prototyped.Web.Controllers
         [Route("Register")]
         public async Task<HttpResponseMessage> Register(RegisterBindingModel model)
         {
-            List<string> errors = new List<string>();
-            errors = ModelErrorChecker.Check(ModelState);
-
-            if (errors.Count == 0)
+            try
             {
-                var user = new User() { UserName = model.Email, Email = model.Email };
-
-                if (UserManager.FindByEmail(model.Email) == null)
+                var errors = ModelErrorChecker.Check(ModelState);
+                if (errors.Count == 0)
                 {
-
-                    IdentityResult result = await UserManager.CreateAsync(user, model.Password);
-
-                    if (!result.Succeeded)
+                    var user = new User
                     {
-                        return Request.CreateResponse(HttpStatusCode.NotAcceptable, result.Errors);
+                        Email = model.Email,
+                        UserName = model.Email,
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                    };
+
+                    if (UserManager.FindByEmail(model.Email) == null)
+                    {
+
+                        var result = await UserManager.CreateAsync(user, model.Password);
+                        if (!result.Succeeded)
+                        {
+                            return Request.CreateResponse(HttpStatusCode.NotAcceptable, result.Errors);
+                        }
                     }
+                    else
+                        return Request.CreateResponse(HttpStatusCode.NotAcceptable, "Email address is already in use.");
                 }
                 else
-                    return Request.CreateResponse(HttpStatusCode.NotAcceptable, "Email address is already in use.");
+                    return Request.CreateResponse(HttpStatusCode.NotAcceptable, errors);
             }
-            else
-                return Request.CreateResponse(HttpStatusCode.NotAcceptable, errors);
-
+            catch (DbEntityValidationException e)
+            {
+                var sb = new StringBuilder();
+                foreach (var eve in e.EntityValidationErrors)
+                {
+                    var ent = eve.Entry.Entity.GetType().Name;
+                    var act = eve.Entry.State;
+                    var msg = string.Format(" - Entity of type {0} in state {1} has the following validation errors:", ent, act);
+                    sb.AppendLine(msg);
+                    foreach (var ve in eve.ValidationErrors)
+                    {
+                        msg = string.Format("   + Property: {0}, Error: {1}", ve.PropertyName, ve.ErrorMessage); sb.AppendLine(msg);
+                    }
+                }
+                //throw new Exception(sb.ToString(), e);
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, ex);
+            }
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
@@ -368,9 +386,15 @@ namespace Prototyped.Web.Controllers
                 return InternalServerError();
             }
 
-            var user = new User() { UserName = model.Email, Email = model.Email };
+            var user = new User
+            {
+                Email = model.Email,
+                UserName = model.Email,
+                FirstName = "(External)",
+                //LastName = "User",
+            };
 
-            IdentityResult result = await UserManager.CreateAsync(user);
+            var result = await UserManager.CreateAsync(user);
             if (!result.Succeeded)
             {
                 return GetErrorResult(result);
@@ -384,15 +408,7 @@ namespace Prototyped.Web.Controllers
             return Ok();
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                UserManager.Dispose();
-            }
-
-            base.Dispose(disposing);
-        }
+        #endregion
 
         #region Helpers
 
@@ -500,5 +516,15 @@ namespace Prototyped.Web.Controllers
         }
 
         #endregion
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                UserManager.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }

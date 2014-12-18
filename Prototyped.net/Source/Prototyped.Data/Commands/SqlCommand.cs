@@ -353,7 +353,7 @@ LOG ON (
 
         protected void DatabaseDefineAdminUser(ProtoDB db, string username, string password)
         {
-            var admin = new Person
+            var admin = new User
             {
                 UserName = username,
                 PasswordHash = password,
@@ -374,7 +374,7 @@ LOG ON (
             db.SaveChanges();
         }
 
-        protected void DatabaseDefineUserRoles(ProtoDB db, Person user, string[] roles)
+        protected void DatabaseDefineUserRoles(ProtoDB db, User user, string[] roles)
         {
             foreach (var role in db.Roles.Where(r => roles.Contains(r.Name)))
             {

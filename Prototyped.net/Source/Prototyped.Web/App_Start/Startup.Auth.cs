@@ -9,6 +9,7 @@ using Microsoft.Owin.Security.OAuth;
 using Owin;
 using Prototyped.Web.Providers;
 using Prototyped.Web.Models;
+using Prototyped.Web.Models.DataModels;
 
 namespace Prototyped.Web
 {
@@ -37,7 +38,7 @@ namespace Prototyped.Web
                 TokenEndpointPath = new PathString("/Token"),
                 Provider = new ApplicationOAuthProvider(PublicClientId),
                 AuthorizeEndpointPath = new PathString("/api/Account/ExternalLogin"),
-                //If the AccessTokenExpireTimeSpan is changed, also change the ExpiresUtc in the RefreshTokenProvider.cs.
+                // If the AccessTokenExpireTimeSpan is changed, also change the ExpiresUtc in the RefreshTokenProvider.cs.
                 AccessTokenExpireTimeSpan = TimeSpan.FromHours(2),
                 AllowInsecureHttp = true,
                 RefreshTokenProvider = new RefreshTokenProvider()
