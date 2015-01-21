@@ -1,12 +1,28 @@
 /*!
- * Prototyped Grunt file for HTML / AJAX / AngularJS / ASP.net MVC or Winforms
- * Copyright 2013-2014 Prototyped
+ * Prototyped Grunt file for MSBuild and ASP.net MVC or Winforms
+ * Inspired partialy by:
+ *  - http://www.mikeobrien.net/blog/using-grunt-to-build-and-deploy-dotnet-apps/
  */
 module.exports = function (grunt) {
     'use strict';
 
-    // DEFINE PROTOTYPED BUILD 
-    var globalConfig = {
+    // Load package info
+    var pkg = grunt.file.readJSON('package.json');
+
+    // Define some proto stubs
+    var proto = {
+        constants: {
+            hr: '-------------------------------------------------------------------------------',
+            banner: '/*!\n' +
+                    ' * <%= pkg.name %> v<%= pkg.version %> (<%= pkg.homepage %>)\n' +
+                    ' * Copyright 2014-<%= grunt.template.today("yyyy") %> <%= pkg.author %>\n' +
+                    ' */\n',
+            jsCheck: 'if (typeof jQuery === \'undefined\') { throw new Error(\'Bootstrap\\\'s JavaScript requires jQuery\') }\n\n',
+        },
+    };
+
+    // Define the build config
+    var cfg = {
         bin: 'Build',
         src: 'Source',
         dest: 'Published',
@@ -16,87 +32,101 @@ module.exports = function (grunt) {
                 'grunt-contrib-watch',
                 'grunt-dotnet-assembly-info',
                 'grunt-nunit-runner',
+                'grunt-robocopy',
+                //'grunt-nuget',
             ],
-            defines: [],
+            defines: [
+                {
+                    key: 'default', val: [
+                        // Define main build process
+                        'build',
+                        'test-units',
+                        'publish',
+
+                        // Wait for changes
+                        'watch',
+                    ]
+                },
+                {
+                    key: 'build', val: [
+                        // Define dev build
+                        'assemblyinfo',
+                        'msbuild:dev',                        
+                    ]
+                },
+                {
+                    key: 'test-units', val: [
+                        // Define test cases
+                        //'nunit',
+                    ]
+                },
+                {
+                    key: 'publish', val: [
+                        // Define prod build
+                        //'nugetpack', 'nugetpush'
+                    ]
+                },
+
+                // Extend tasks for dist env
+                { key: 'build-dist', val: ['build-prod'] },
+                { key: 'tests-dist', val: ['test-units'] },
+
+                // Add more tasks...
+                //{ key: XXXXX, val: XXXX }, 
+            ],
             customs: [],
         },
         dotNet: {
-            company: 'Prototyped',
-            version: '<%= pkg.version %>',
+            company: pkg.author,
+            version: pkg.version,
             targets: ['Source/Prototyped.sln'],
             msbuild: ['Source/Build.Config.xml'],
         },
     };
 
+
     // Load the NPM tasks (modules) to be used
-    globalConfig.tasks.modules.forEach(function (entry) {
+    cfg.tasks.modules.forEach(function (entry) {
         console.log(' - Loading: ' + entry);
         grunt.loadNpmTasks(entry);
     });
+    console.log(proto.constants.hr);
+
 
     // Load the definitions of your prototyped grunt tasks
-    globalConfig.tasks.defines.forEach(function (entry, value) {
-        console.log(' - Definig: ' + entry);
-        //grunt.registerTask(entry);
+    cfg.tasks.defines.forEach(function (entry, value) {
+        if (entry.key) {
+            console.log(' - Definig: ' + entry.key);
+            grunt.registerTask(entry.key, entry.val);
+        } else {
+            console.warn(' - Warning: Invalid task encountered.');
+        }
     });
+    console.log(proto.constants.hr);
 
-    grunt.registerTask('default', [
-      // Define main build process
-      'build-dev',
 
-      // Wait for changes
-      'watch'
-    ]);
-    grunt.registerTask('build-dev', [
-      'msbuild:dev',
-      'tests-run',
-    ]);
-    grunt.registerTask('build-prod', [
-      'msbuild:prod',
-      'tests-run'
-    ]);
-    grunt.registerTask('tests-run', [
-      // Define test cases
-    ]);
-
-    // EXTEND TASKS FOR DISTRIBUTION ENVIRONMENT
-    grunt.registerTask('dist-build', ['build-prod']);
-    grunt.registerTask('dist-test', ['tests-run']);
-    grunt.registerTask('dist-watch', ['watch']);
-
-    // DEFINE YOUR VERSION NAME 	  
+    // Initialise the current config
+    console.log(' - Current build: ' + cfg.dotNet.version);
     grunt.initConfig({
-        globalConfig: globalConfig,
-        pkg: grunt.file.readJSON('package.json'),
-        banner: '/*!\n' +
-                ' * <%= pkg.name %> v<%= pkg.version %> (<%= pkg.homepage %>)\n' +
-                ' * Copyright 2011-<%= grunt.template.today("yyyy") %> <%= pkg.author %>\n' +
-                ' */\n',
+        cfg: cfg,
+        pkg: pkg,
+        banner: proto.constants.banner,
+        jqueryCheck: proto.constants.jsCheck,
 
-        jqueryCheck: 'if (typeof jQuery === \'undefined\') { throw new Error(\'Bootstrap\\\'s JavaScript requires jQuery\') }\n\n',
-
-        // VERSION INFO
+        // Set version info
         assemblyinfo: {
             options: {
-                files: globalConfig.dotNet.targets,
+                files: cfg.dotNet.targets,
                 info: {
-                    version: process.env.BUILD_NUMBER,
-                    fileVersion: process.env.BUILD_NUMBER,
-                    company: globalConfig.dotNet.company,
-                    copyright: 'Copyright (c) ' + globalConfig.dotNet.company,
+                    copyright: 'Copyright (c) ' + cfg.dotNet.company,
+                    version: cfg.dotNet.version,
+                    fileVersion: cfg.dotNet.version,
+                    company: cfg.dotNet.company,
                 }
             }
         },
 
-        // UNIT TESTS
-        nunit: {
-            options: {
-                files: globalConfig.dotNet.targets,
-                teamcity: true
-            }
-        },
-
-        // MS BUILD ENGINE
+        // Define msbuild
         msbuild: {
             options: {
                 stdout: true,
@@ -109,29 +139,78 @@ module.exports = function (grunt) {
                 targets: ['Build'],
             },
             dev: {
-                src: globalConfig.dotNet.msbuild,
+                src: cfg.dotNet.msbuild,
                 options: {
                     projectConfiguration: 'Debug',
                 }
             },
             prod: {
-                src: globalConfig.dotNet.msbuild,
+                src: cfg.dotNet.msbuild,
                 options: {
                     projectConfiguration: 'Release',
                 }
             }
         },
 
-        // WATCH FILES FOR CHANGES
+        // Define Unit Tests
+        nunit: {
+            options: {
+                files: cfg.dotNet.targets,
+                teamcity: true
+            }
+        },
+
+        robocopy: {
+            options: {
+                source: cfg.src,
+                destination: cfg.dest,
+                files: ['*.config', '*.html', '*.htm', '*.js', '*.dll', '*.pdb', '*.png', '*.jpg', '*.jpeg', '*.gif', '*.css'],
+                copy: {
+                    mirror: true
+                },
+                file: {
+                    excludeFiles: ['packages.config'],
+                    excludeDirs: ['obj', 'Properties'],
+                },
+                retry: {
+                    count: 2,
+                    wait: 3
+                },
+            }
+        },
+
+        /*
+        nugetpack: {
+            myApp: {
+                src: 'MyLib.nuspec',
+                dest: './'
+            },
+            options: {
+                version: pkg.version
+            }
+        },
+
+        nugetpush: {
+            myApp: {
+                src: '*.nupkg'
+            },
+            options: {
+                apiKey: process.env.NUGET_API_KEY
+            }
+        },
+        */
+
+        // Watch for changes
         watch: {
             csharp: {
                 files: [
-                  '<%= globalConfig.src %>/**/*.cs',
-                  '<%= globalConfig.src %>/**/*.csproj',
-                  '<%= globalConfig.src %>/Build.Config.xml',
+                  '<%= cfg.src %>/**/*.cs',
+                  '<%= cfg.src %>/**/*.csproj',
+                  '<%= cfg.src %>/Build.Config.xml',
                 ],
                 tasks: ['msbuild']
             },
         }
     });
+
 };

@@ -74,7 +74,7 @@ if not exist "%msbuild_dst%" (
 )
 :npm_grunt
 echo /* -- [ Grunt Tasks ] ------------------------------ */ >> "%log%"
-echo  - Running Grunt Tasks...
+echo  - Running Tasks...
 echo -------------------------------------------------------------------------------
 call grunt || goto error
 echo /* -- Returns [ %errorlevel% ] ----------------------------------------------- */ >> "%log%"
