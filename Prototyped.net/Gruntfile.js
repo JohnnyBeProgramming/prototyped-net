@@ -67,12 +67,14 @@ module.exports = function (grunt) {
                     ]
                 },
 
-                // Extend tasks for dist env
-                { key: 'build-dist', val: ['build-prod'] },
-                { key: 'tests-dist', val: ['test-units'] },
 
                 // Add more tasks...
                 //{ key: XXXXX, val: XXXX }, 
+
+
+                // Extend tasks for dist env
+                { key: 'build-dist', val: ['build-prod'] },
+                { key: 'tests-dist', val: ['test-units'] },
             ],
             customs: [],
         },
