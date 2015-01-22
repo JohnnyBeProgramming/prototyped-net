@@ -44,6 +44,7 @@ set npm_args= -express --loglevel error
 set newInstall=0
 if not exist "node_modules" set newInstall=1
 :npm_install_globals
+if not exist "%APPDATA%\npm\node_modules\gulp\" call npm install gulp -g >> "%log%"
 if not exist "%APPDATA%\npm\node_modules\grunt-init\" call "%npm%" install -g grunt-init  >> "%log%"
 if not exist "%APPDATA%\npm\node_modules\grunt-cli\" call "%npm%" install -g grunt-cli  >> "%log%"
 if "%newInstall%"=="1" goto npm_install_new
