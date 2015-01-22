@@ -21,6 +21,10 @@
     "grunt-msbuild": "0.2.2",
     "grunt-nunit-runner": "2.0.3",
     "grunt-robocopy": "1.0.7",
-    "gulp": "^3.8.10"
+    "gulp": "^3.8.10",
+    "gulp-dotnet-assembly-info": "^0.1.10",
+    "gulp-msbuild": "^0.2.5",
+    "gulp-nunit-runner": "^0.4.1",
+    "xmlpoke": "^0.1.9"
   }
 }
