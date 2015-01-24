@@ -1,31 +1,33 @@
 {
-  "version": "0.0.1",
-  "name": "Prototyped",
-  "author": "author",
-  "private": true,
-  "description": "Prototyped software solutions for responsive web-based AngularJS apps.",
-  "homepage": "https://www.prototyped.info",
-  "repository": {
-    "type": "git",
-    "url": "https://johnnybecoding.visualstudio.com/DefaultCollection/_git/Prototyped"
-  },
-  "dependencies": {},
-  "scripts": {
-    "preinstall": "echo - Installing...",
-    "preupdate": "echo - Updating..."
-  },
-  "devDependencies": {
-    "grunt": "0.4.5",
-    "grunt-contrib-watch": "0.6.1",
-    "grunt-dotnet-assembly-info": "1.0.4",
-    "grunt-msbuild": "0.2.2",
-    "grunt-nunit-runner": "2.0.3",
-    "grunt-robocopy": "1.0.7",
-    "gulp": "^3.8.10",
-    "gulp-dotnet-assembly-info": "^0.1.10",
-    "gulp-grunt": "^0.5.2",
-    "gulp-msbuild": "^0.2.5",
-    "gulp-nunit-runner": "^0.4.1",
-    "xmlpoke": "^0.1.9"
-  }
+    "version": "0.0.1",
+    "name": "Prototyped",
+    "author": "author",
+    "private": true,
+    "description": "Prototyped software solutions for responsive web-based AngularJS apps.",
+    "homepage": "https://www.prototyped.info",
+    "repository": {
+        "type": "git",
+        "url": "https://johnnybecoding.visualstudio.com/DefaultCollection/_git/Prototyped"
+    },
+    "dependencies": { },
+    "scripts": {
+        "add:globals": "npm run add:grunt-init & npm run add:grunt-cli & npm run add:http-server",
+        "add:grunt-init": "if not exist \"%APPDATA%/npm/node_modules/grunt-init\" call npm install -g grunt-init",
+        "add:grunt-cli": "if not exist \"%APPDATA%/npm/node_modules/grunt-cli\" call npm install -g grunt-cli",
+        "add:http-server": "if not exist \"%APPDATA%/npm/node_modules/http-server\" call npm install -g http-server"
+    },
+    "devDependencies": {
+        "grunt": "0.4.5",
+        "grunt-contrib-watch": "0.6.1",
+        "grunt-dotnet-assembly-info": "1.0.4",
+        "grunt-msbuild": "0.2.2",
+        "grunt-nunit-runner": "2.0.3",
+        "grunt-robocopy": "1.0.7",
+        "gulp": "^3.8.10",
+        "gulp-dotnet-assembly-info": "^0.1.10",
+        "gulp-grunt": "^0.5.2",
+        "gulp-msbuild": "^0.2.5",
+        "gulp-nunit-runner": "^0.4.1",
+        "xmlpoke": "^0.1.9"
+    }
 }
