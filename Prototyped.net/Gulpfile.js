@@ -9,9 +9,10 @@
 var fs = require('fs');
 var gulp = require('gulp');
 var pkg = JSON.parse(fs.readFileSync('package.json'));
-
-// Define the tasks
-gulp.task('default', ['build']);
+/*
+var grunt = require('gulp-grunt');
+grunt(gulp); // add all the gruntfile tasks to gulp
+*/
 
 /*
 // Return a stream so gulp can determine completion
@@ -122,3 +123,11 @@ gulp.task('database', ['robocopy'], function() {
     });
 });
 */
+
+// Define the tasks
+gulp.task('default', function() {
+    // run complete grunt tasks
+    //gulp.run('grunt-minify');
+    // or run specific targets
+    gulp.run('build');
+});
