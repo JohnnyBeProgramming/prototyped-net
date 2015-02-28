@@ -84,7 +84,7 @@ namespace prototyped.exe.forms
                     ProtoPackager.Unpack(WorkingFolder, AppConfig.PackageDir);
 
                     // Step 2: Use the npm installer to initialise and setup the globals
-                    if (Directory.Exists("node_modules"))
+                    if (Directory.Exists("node_modules") && Directory.GetDirectories("node_modules").Any())
                     {
                         // Do NPM Update, its faster and saves bandwith
                         ProtoPackager.Run(AppConfig.PackageUpdate, WorkingFolder).WaitForExit();
