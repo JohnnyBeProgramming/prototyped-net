@@ -1,0 +1,26 @@
+{
+    "private": true,
+    "version": "0.0.2",
+    "name": "prototyped-packager",
+    "author": "Johnathan Lodder",
+    "description": "Wraps the npm command framework into an executable for fast installation and deployment.",
+    "homepage": "http://www.prototyped.info",
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "scripts": {
+        "preinstall": "echo Installing npm modules...",
+        "preupdate": "echo Updating npm modules...",
+        "prestart": "echo Starting Application...",
+        "start": "http-server",
+        "poststart": "pause"
+    },
+    "globals": {
+        "grunt-init": "0.3.2",
+        "grunt-cli": "0.1.13"
+    },
+    "dependencies": {
+        "http-server": "0.7.4"
+    }
+}
