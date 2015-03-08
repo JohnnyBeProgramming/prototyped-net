@@ -1,0 +1,10 @@
+{
+  "version": "0.0.1",
+  "homepage": "https://www.prototyped.info",
+  "scripts": { },
+  "dependencies": {
+    "edge": "^0.9.3",
+    "node.extend": "^1.1.3"
+  },
+  "devDependencies": { }
+}
