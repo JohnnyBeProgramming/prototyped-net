@@ -21,17 +21,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Interop Commands", "Interop
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prototyped.Cmd", "Prototyped.Cmd\Prototyped.Cmd.csproj", "{0C01EBDA-278B-467F-91C6-F9AA43669989}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Assets", "Assets", "{3FE98A61-87CA-4369-825A-DC501BBA81BF}"
-	ProjectSection(SolutionItems) = preProject
-		..\package.json = ..\package.json
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Builders", "Builders", "{45A65956-249E-4D68-8308-C31F1F7BEA76}"
-	ProjectSection(SolutionItems) = preProject
-		Build.Config.xml = Build.Config.xml
-		..\Gruntfile.js = ..\Gruntfile.js
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +52,5 @@ Global
 		{2360A94F-A233-48F1-9310-BE726573A823} = {AD530396-FA6E-4BCD-9C0C-1D8B5C46798D}
 		{0AB0A3F4-F35F-4F99-8F53-E1DDD4A2227F} = {EADF2ADE-66B9-4B8C-B028-11E040563B02}
 		{0C01EBDA-278B-467F-91C6-F9AA43669989} = {A62CF2FD-E559-46D6-A133-191C0B2758C5}
-		{45A65956-249E-4D68-8308-C31F1F7BEA76} = {3FE98A61-87CA-4369-825A-DC501BBA81BF}
 	EndGlobalSection
 EndGlobal
