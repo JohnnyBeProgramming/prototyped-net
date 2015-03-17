@@ -23,9 +23,9 @@ module.exports = function (grunt) {
 
     // Define the build config
     var cfg = {
-        bin: 'Build',
-        src: 'Source',
-        dest: 'Published',
+        bin: './bin',
+        src: '../Source',
+        dest: './app',
         tasks: {
             modules: [
                 'grunt-msbuild',
@@ -81,8 +81,8 @@ module.exports = function (grunt) {
         dotNet: {
             company: pkg.author,
             version: pkg.version,
-            targets: ['Source/Prototyped.sln'],
-            msbuild: ['Source/Build.Config.xml'],
+            targets: ['<%= cfg.src %>/Prototyped.sln'],
+            msbuild: ['<%= cfg.src %>/Build.Config.xml'],
         },
     };
 

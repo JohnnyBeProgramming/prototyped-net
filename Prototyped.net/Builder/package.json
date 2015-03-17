@@ -5,16 +5,11 @@
     "private": true,
     "description": "Prototyped software solutions for responsive web-based AngularJS apps.",
     "homepage": "https://www.prototyped.info",
-    "repository": {
-        "type": "git",
-        "url": "https://johnnybecoding.visualstudio.com/DefaultCollection/_git/Prototyped"
-    },
     "dependencies": { },
     "scripts": {
-        "add:globals": "npm run add:grunt-init & npm run add:grunt-cli & npm run add:http-server",
+        "add:globals": "npm run add:grunt-init & npm run add:grunt-cli",
         "add:grunt-init": "if not exist \"%APPDATA%/npm/node_modules/grunt-init\" call npm install -g grunt-init",
-        "add:grunt-cli": "if not exist \"%APPDATA%/npm/node_modules/grunt-cli\" call npm install -g grunt-cli",
-        "add:http-server": "if not exist \"%APPDATA%/npm/node_modules/http-server\" call npm install -g http-server"
+        "add:grunt-cli": "if not exist \"%APPDATA%/npm/node_modules/grunt-cli\" call npm install -g grunt-cli"
     },
     "devDependencies": {
         "grunt": "0.4.5",

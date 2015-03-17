@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <SolutionFile Include="Prototyped.sln" />
-    <BuildDir Include="..\Build\" />
+    <BuildDir Include="Build\" />
   </ItemGroup>
 
   <PropertyGroup>
